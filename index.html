@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Riverbend Plumbing — chatbot demo</title>
+<style>
+  /* Minimal demo page styling — replace this whole page with your own site.
+     The chat widget below is self-contained: everything it needs is inside
+     the "Chat widget" section. */
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f6f7f9;color:#1c2430;}
+  .demo-hero{max-width:640px;margin:0 auto;padding:96px 24px;}
+  .demo-hero h1{font-size:2rem;margin:0 0 12px;}
+  .demo-hero p{font-size:1.05rem;line-height:1.6;color:#4a5568;margin:0 0 8px;}
+  .demo-hero .hint{font-size:.9rem;color:#8a94a3;}
+  @media (prefers-color-scheme: dark){
+    body{background:#12161c;color:#e8ecf1;}
+    .demo-hero p{color:#a8b2c0;}
+    .demo-hero .hint{color:#6b7686;}
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-hero">
+  <h1>Riverbend Plumbing</h1>
+  <p>This is a placeholder page for the chat widget demo. Riverbend Plumbing is a fictional business — drop the widget section below into your own site and edit the constants at the top of its script.</p>
+  <p class="hint">Click the chat bubble in the corner &#8600;</p>
+</div>
+
+<!-- ==================== Chat widget (copy from here down) ==================== -->
+<style>
+  :root{
+    --cw-bg:#ffffff;
+    --cw-text:#1c2430;
+    --cw-border:#d8dee6;
+    --cw-muted:#8a94a3;
+    --cw-accent:#2563eb;
+    --cw-accent-hover:#1d4ed8;
+    --cw-accent-text:#ffffff;
+    --cw-bot-bubble:rgba(28,36,48,0.07);
+    --cw-head-bg:#1c2430;
+    --cw-head-text:#ffffff;
+    --cw-head-muted:#9aa5b4;
+    --cw-shadow:0 18px 50px rgba(28,36,48,0.22);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --cw-bg:#171c24;
+      --cw-text:#e8ecf1;
+      --cw-border:#2c3542;
+      --cw-muted:#6b7686;
+      --cw-bot-bubble:rgba(255,255,255,0.08);
+      --cw-head-bg:#0e1218;
+      --cw-shadow:0 18px 50px rgba(0,0,0,0.55);
+    }
+  }
+
+  .cw-launcher{position:fixed;bottom:22px;right:22px;z-index:1000;width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;background:var(--cw-accent);color:var(--cw-accent-text);display:flex;align-items:center;justify-content:center;box-shadow:var(--cw-shadow);transition:background .15s ease,transform .15s ease;}
+  .cw-launcher:hover{background:var(--cw-accent-hover);transform:translateY(-2px);}
+  .cw-launcher.cw-hidden{display:none;}
+
+  .cw-panel{position:fixed;bottom:22px;right:22px;z-index:1001;width:min(380px,calc(100vw - 24px));height:min(560px,calc(100vh - 44px));height:min(560px,calc(100dvh - 44px));display:none;flex-direction:column;background:var(--cw-bg);border:1px solid var(--cw-border);border-radius:10px;overflow:hidden;box-shadow:var(--cw-shadow);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
+  .cw-panel.cw-open{display:flex;animation:cwFade .25s ease both;}
+  @keyframes cwFade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .cw-head{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--cw-head-bg);color:var(--cw-head-text);flex:none;}
+  .cw-head-name{font-weight:700;font-size:16px;letter-spacing:0.03em;line-height:1.1;}
+  .cw-head-sub{font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--cw-head-muted);margin-top:3px;}
+  .cw-close{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--cw-head-muted);padding:6px;line-height:0;border-radius:4px;}
+  .cw-close:hover{color:var(--cw-head-text);}
+
+  .cw-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;}
+  .cw-msg{max-width:85%;padding:10px 13px;border-radius:10px;font-size:14.5px;line-height:1.5;white-space:pre-wrap;overflow-wrap:break-word;}
+  .cw-msg.user{align-self:flex-end;background:var(--cw-accent);color:var(--cw-accent-text);border-bottom-right-radius:3px;}
+  .cw-msg.assistant{align-self:flex-start;background:var(--cw-bot-bubble);color:var(--cw-text);border-bottom-left-radius:3px;}
+
+  .cw-typing{align-self:flex-start;display:flex;gap:5px;padding:13px 15px;background:var(--cw-bot-bubble);border-radius:10px;border-bottom-left-radius:3px;}
+  .cw-typing span{width:6px;height:6px;border-radius:50%;background:var(--cw-muted);animation:cwBlink 1.2s infinite;}
+  .cw-typing span:nth-child(2){animation-delay:.2s;}
+  .cw-typing span:nth-child(3){animation-delay:.4s;}
+  @keyframes cwBlink{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+
+  .cw-inputrow{display:flex;gap:8px;padding:12px;border-top:1px solid var(--cw-border);flex:none;}
+  .cw-inputrow input{flex:1;min-width:0;border:1px solid var(--cw-border);border-radius:6px;background:var(--cw-bg);color:var(--cw-text);font-family:inherit;font-size:14.5px;padding:11px 13px;outline:none;}
+  .cw-inputrow input:focus{border-color:var(--cw-accent);}
+  .cw-inputrow button{flex:none;width:44px;border:none;border-radius:6px;background:var(--cw-accent);color:var(--cw-accent-text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s ease;}
+  .cw-inputrow button:hover{background:var(--cw-accent-hover);}
+  .cw-inputrow button:disabled{opacity:.5;cursor:default;}
+
+  .cw-note{font-size:10px;letter-spacing:0.06em;color:var(--cw-muted);text-align:center;padding:0 12px 10px;flex:none;}
+
+  .cw-chips{display:flex;flex-wrap:wrap;gap:8px;align-self:flex-start;max-width:100%;}
+  .cw-chip{font-size:11.5px;letter-spacing:0.04em;color:var(--cw-text);background:none;border:1px solid var(--cw-border);border-radius:999px;padding:8px 14px;cursor:pointer;text-decoration:none;font-family:inherit;transition:border-color .15s ease,color .15s ease;}
+  .cw-chip:hover{border-color:var(--cw-accent);color:var(--cw-accent);}
+
+  #cwTurnstile{flex:none;align-self:center;}
+  #cwTurnstile:empty{display:none;}
+
+  @media (max-width:480px){
+    .cw-panel{bottom:12px;right:12px;left:12px;width:auto;}
+  }
+</style>
+
+<button id="cwLauncher" class="cw-launcher" aria-label="Chat with our assistant" aria-expanded="false">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;">
+    <path d="M12 3C7.03 3 3 6.58 3 11c0 2.05.87 3.92 2.3 5.34-.18 1.1-.62 2.3-1.5 3.16-.18.18-.05.5.2.5 1.87 0 3.42-.7 4.5-1.42A10.5 10.5 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"></path>
+  </svg>
+</button>
+
+<div id="cwPanel" class="cw-panel" role="dialog" aria-label="Chat with our assistant">
+  <div class="cw-head">
+    <div>
+      <!-- Customize: your assistant's name and your business name -->
+      <div class="cw-head-name">Ava</div>
+      <div class="cw-head-sub">Riverbend Plumbing</div>
+    </div>
+    <button id="cwClose" class="cw-close" aria-label="Close chat">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+    </button>
+  </div>
+  <div id="cwMsgs" class="cw-msgs" aria-live="polite"></div>
+  <div id="cwTurnstile"></div>
+  <form id="cwForm" class="cw-inputrow">
+    <input id="cwInput" type="text" maxlength="2000" placeholder="Type a message&hellip;" autocomplete="off" aria-label="Your message">
+    <button type="submit" id="cwSend" aria-label="Send message">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden="true"><path d="M1 6h15M11 1l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </button>
+  </form>
+  <div class="cw-note">AI assistant &middot; may make mistakes</div>
+</div>
+
+<script>
+(function () {
+  var API = "/api/chat";
+  var MAX_MSGS = 40; // mirrors the server cap (MAX_MESSAGES_PER_CONVERSATION)
+
+  // ---- Customize these ----------------------------------------------------
+  // Your public contact email, shown in fallback messages.
+  var CONTACT_EMAIL = "you@example.com";
+
+  // Optional bot protection: paste your Cloudflare Turnstile SITEKEY here and
+  // set the TURNSTILE_SECRET_KEY secret on the Pages project (see README.md).
+  // Leave empty to disable. Enable both together or neither.
+  var TURNSTILE_SITEKEY = "";
+  // Skip the challenge during local testing (the local server has no
+  // TURNSTILE_SECRET_KEY, so nothing is enforced there anyway).
+  if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) TURNSTILE_SITEKEY = "";
+
+  var GREETING = "Hi — I'm Ava, Riverbend Plumbing's assistant. Leaky faucet, water heater on the fritz, remodel plans? Tell me what's going on and I'll point you in the right direction.";
+  var CAP_MSG = "This has been a great conversation — long enough that email is the better place to continue. Drop us a line at " + CONTACT_EMAIL + ".";
+  var ERR_MSG = "Sorry — I couldn't send that. Please try again in a moment, or email " + CONTACT_EMAIL + ".";
+  var VERIFY_MSG = "I couldn't verify your browser — please refresh the page and try again, or email " + CONTACT_EMAIL + ".";
+  var CHIPS = [
+    { label: "What services do you offer?", send: "What services do you offer?" },
+    { label: "Get a free estimate", send: "I'd like a free estimate." },
+    { label: "Talk to a human", mailto: "you@example.com" }
+  ];
+  // ------------------------------------------------------------------------
+
+  var launcher = document.getElementById("cwLauncher");
+  var panel = document.getElementById("cwPanel");
+  var closeBtn = document.getElementById("cwClose");
+  var msgsEl = document.getElementById("cwMsgs");
+  var form = document.getElementById("cwForm");
+  var input = document.getElementById("cwInput");
+  var sendBtn = document.getElementById("cwSend");
+
+  // Restore conversation from this tab's session, if any.
+  var saved = null;
+  try { saved = JSON.parse(sessionStorage.getItem("cwChat")); } catch (e) {}
+  var history = (saved && Array.isArray(saved.history)) ? saved.history : [];
+  var leadCaptured = !!(saved && saved.leadCaptured);
+  var chatToken = null;
+  try { chatToken = sessionStorage.getItem("cwChatToken"); } catch (e) {}
+
+  var busy = false;
+  var greeted = false;
+  var typingEl = null;
+  var chipsEl = null;
+  var turnstileToken = null;
+  var turnstileLoading = false;
+
+  function persist() {
+    try {
+      sessionStorage.setItem("cwChat", JSON.stringify({ history: history, leadCaptured: leadCaptured }));
+    } catch (e) {}
+  }
+
+  function openPanel() {
+    panel.classList.add("cw-open");
+    launcher.classList.add("cw-hidden");
+    launcher.setAttribute("aria-expanded", "true");
+    if (!greeted) {
+      greeted = true;
+      addBubble("assistant", GREETING);
+      if (history.length) {
+        for (var i = 0; i < history.length; i++) {
+          addBubble(history[i].role, history[i].content);
+        }
+      } else {
+        showChips();
+      }
+    }
+    ensureTurnstile();
+    input.focus();
+  }
+
+  function closePanel() {
+    panel.classList.remove("cw-open");
+    launcher.classList.remove("cw-hidden");
+    launcher.setAttribute("aria-expanded", "false");
+  }
+
+  function addBubble(role, text) {
+    var div = document.createElement("div");
+    div.className = "cw-msg " + role;
+    div.textContent = text;
+    msgsEl.appendChild(div);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
+  function showChips() {
+    chipsEl = document.createElement("div");
+    chipsEl.className = "cw-chips";
+    CHIPS.forEach(function (chip) {
+      var el;
+      if (chip.mailto) {
+        el = document.createElement("a");
+        el.href = "mailto:" + chip.mailto;
+        el.textContent = chip.label;
+      } else {
+        el = document.createElement("button");
+        el.type = "button";
+        el.textContent = chip.label;
+        el.addEventListener("click", function () {
+          sendMessage(chip.send);
+        });
+      }
+      el.className = "cw-chip";
+      chipsEl.appendChild(el);
+    });
+    msgsEl.appendChild(chipsEl);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
+  function removeChips() {
+    if (chipsEl) {
+      chipsEl.remove();
+      chipsEl = null;
+    }
+  }
+
+  function setTyping(on) {
+    if (on && !typingEl) {
+      typingEl = document.createElement("div");
+      typingEl.className = "cw-typing";
+      typingEl.innerHTML = "<span></span><span></span><span></span>";
+      msgsEl.appendChild(typingEl);
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+    } else if (!on && typingEl) {
+      typingEl.remove();
+      typingEl = null;
+    }
+  }
+
+  // ---- Turnstile (only active when TURNSTILE_SITEKEY is set) ----
+  function ensureTurnstile() {
+    if (!TURNSTILE_SITEKEY || chatToken || turnstileToken || turnstileLoading) return;
+    turnstileLoading = true;
+    window.cwTurnstileReady = function () {
+      try {
+        window.turnstile.render("#cwTurnstile", {
+          sitekey: TURNSTILE_SITEKEY,
+          appearance: "interaction-only",
+          callback: function (t) { turnstileToken = t; },
+          "expired-callback": function () { resetTurnstile(); },
+          "error-callback": function (code) {
+            console.warn("Chat: Turnstile challenge failed, code:", code);
+          }
+        });
+      } catch (e) {}
+    };
+    var s = document.createElement("script");
+    s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?onload=cwTurnstileReady";
+    s.async = true;
+    document.head.appendChild(s);
+  }
+
+  function resetTurnstile() {
+    turnstileToken = null;
+    if (window.turnstile) {
+      try { window.turnstile.reset(); } catch (e) {}
+    }
+  }
+
+  function clearChatToken() {
+    chatToken = null;
+    try { sessionStorage.removeItem("cwChatToken"); } catch (e) {}
+  }
+
+  // Wait briefly for a Turnstile token if verification is enabled and we
+  // don't already hold a session token.
+  async function waitForVerification() {
+    if (!TURNSTILE_SITEKEY || chatToken) return true;
+    for (var i = 0; i < 40; i++) { // up to ~10s
+      if (turnstileToken) return true;
+      await new Promise(function (r) { setTimeout(r, 250); });
+    }
+    return false;
+  }
+
+  // ---- Sending ----
+  async function sendMessage(text) {
+    text = (text || "").trim();
+    if (!text || busy) return;
+    if (history.length >= MAX_MSGS) {
+      addBubble("assistant", CAP_MSG);
+      return;
+    }
+
+    removeChips();
+    input.value = "";
+    history.push({ role: "user", content: text });
+    addBubble("user", text);
+    persist();
+    busy = true;
+    sendBtn.disabled = true;
+    setTyping(true);
+
+    var verified = await waitForVerification();
+    if (!verified) {
+      history.pop();
+      persist();
+      busy = false;
+      sendBtn.disabled = false;
+      setTyping(false);
+      addBubble("assistant", VERIFY_MSG);
+      return;
+    }
+
+    try {
+      var payload = { messages: history, leadCaptured: leadCaptured };
+      if (chatToken) {
+        payload.chatToken = chatToken;
+      } else if (turnstileToken) {
+        payload.turnstileToken = turnstileToken;
+        turnstileToken = null; // tokens are single-use
+      }
+
+      var res = await fetch(API, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      var data = await res.json();
+      var reply = (data && data.reply) || ERR_MSG;
+
+      if (data && data.chatToken) {
+        chatToken = data.chatToken;
+        try { sessionStorage.setItem("cwChatToken", chatToken); } catch (e) {}
+      }
+      if (data && data.needVerify) {
+        clearChatToken();
+        resetTurnstile();
+        ensureTurnstile(); // in case the widget was never rendered (e.g. stale session token)
+      }
+      if (data && data.leadCaptured) leadCaptured = true;
+
+      if (data && data.limited) {
+        // Static refusal (rate limit / budget / cap / verify): show it, but
+        // keep it out of the history so the visitor can retry later.
+        history.pop();
+        addBubble("assistant", reply);
+      } else {
+        history.push({ role: "assistant", content: reply });
+        addBubble("assistant", reply);
+      }
+      persist();
+    } catch (err) {
+      history.pop();
+      persist();
+      addBubble("assistant", ERR_MSG);
+    } finally {
+      busy = false;
+      sendBtn.disabled = false;
+      setTyping(false);
+      input.focus();
+    }
+  }
+
+  launcher.addEventListener("click", openPanel);
+  closeBtn.addEventListener("click", closePanel);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && panel.classList.contains("cw-open")) closePanel();
+  });
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    sendMessage(input.value);
+  });
+})();
+</script>
+<!-- ==================== End chat widget ==================== -->
+</body>
+</html>
