@@ -159,4 +159,4 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-Maintained by [Synortho Systems](https://synorthos.com) — we build practical, safe automation for small businesses. If you'd rather have this set up, customized, and maintained for you, [get in touch](https://synorthos.com).
+Maintained by [Synorthos Systems](https://synorthos.com) — we build practical, safe automation for small businesses. If you'd rather have this set up, customized, and maintained for you, [get in touch](https://synorthos.com).
