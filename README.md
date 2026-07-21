@@ -73,7 +73,7 @@ Pages project → **Settings** → **Variables and Secrets**, environment **Prod
 2. Site Key → paste into `TURNSTILE_SITEKEY` in `index.html`. Secret Key → add as the `TURNSTILE_SECRET_KEY` secret.
 3. **Enable both together or neither.** Secret set but sitekey empty = every message rejected; sitekey set but secret unset = challenge runs but isn't enforced.
 
-How it works: the first message solves an invisible challenge; the worker verifies it and mints a signed 24-hour token, so later messages skip the round-trip. No cookies involved.
+How it works: the first message solves an invisible challenge; the worker verifies it and mints an HMAC-signed 24-hour token, so later messages skip the round-trip. No cookies involved. The token is bound to the visitor's IP, so a token copied out of one browser can't be replayed from elsewhere — the trade-off is that a visitor whose IP changes mid-session (mobile networks, VPN toggles) solves one more invisible challenge.
 
 **WAF rate-limiting rule (edge backstop):** your domain → Security → WAF → Rate limiting rules → if URI Path equals `/api/chat`, rate 20 req/min per IP → Block. This runs *before* the worker, spending zero invocations on bursts.
 

@@ -238,13 +238,13 @@ async function handleChat(request, env, ctx) {
   // the challenge round-trip.
   let mintedToken = null;
   if (env.TURNSTILE_SECRET_KEY) {
-    const tokenOk = await verifyChatToken(env, body.chatToken);
+    const tokenOk = await verifyChatToken(env, body.chatToken, ip);
     if (!tokenOk) {
       const turnstileOk = await verifyTurnstile(env, body.turnstileToken, ip);
       if (!turnstileOk) {
         return json({ reply: MSG_VERIFY, limited: true, needVerify: true });
       }
-      mintedToken = await mintChatToken(env);
+      mintedToken = await mintChatToken(env, ip);
     }
   }
   const extra = () => (mintedToken ? { chatToken: mintedToken } : {});
@@ -528,20 +528,31 @@ async function verifyTurnstile(env, token, ip) {
   }
 }
 
-async function mintChatToken(env) {
+// Tokens are bound to the IP that solved the challenge, so a token lifted from
+// one browser can't be replayed from a proxy pool — one solved challenge buys
+// access for that address only, not for the internet.
+async function mintChatToken(env, ip) {
   const ts = String(Date.now());
-  return `${ts}.${await hmacHex(env.TURNSTILE_SECRET_KEY, `chat:${ts}`)}`;
+  return `${ts}.${await hmacHex(env.TURNSTILE_SECRET_KEY, `chat:${ts}:${ip}`)}`;
 }
 
-async function verifyChatToken(env, token) {
+async function verifyChatToken(env, token, ip) {
   if (typeof token !== "string") return false;
   const dot = token.indexOf(".");
   if (dot < 1) return false;
   const ts = token.slice(0, dot);
   const age = Date.now() - Number(ts);
   if (!Number.isFinite(age) || age < 0 || age > CHAT_TOKEN_TTL_MS) return false;
-  const expected = await hmacHex(env.TURNSTILE_SECRET_KEY, `chat:${ts}`);
-  return token.slice(dot + 1) === expected;
+  const expected = await hmacHex(env.TURNSTILE_SECRET_KEY, `chat:${ts}:${ip}`);
+  return timingSafeEqual(token.slice(dot + 1), expected);
+}
+
+// Constant-time comparison so a signature can't be recovered byte by byte.
+function timingSafeEqual(a, b) {
+  if (typeof a !== "string" || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }
 
 async function hmacHex(secret, message) {
