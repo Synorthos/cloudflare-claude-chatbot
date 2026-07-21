@@ -184,7 +184,11 @@ async function handleChat(request, env, ctx) {
 
   // ---- Parse & validate the request body (cheap checks first, no API cost) ----
   const raw = await request.text();
-  if (raw.length > MAX_BODY_BYTES) return json({ reply: MSG_ERROR, limited: true });
+  // Measure real bytes, not JS string length: a body of multibyte characters is
+  // up to 3x its .length in UTF-8, which would slip past a .length check.
+  if (new TextEncoder().encode(raw).length > MAX_BODY_BYTES) {
+    return json({ reply: MSG_ERROR, limited: true });
+  }
 
   let body;
   try {
