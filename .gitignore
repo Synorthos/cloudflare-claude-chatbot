@@ -4,3 +4,4 @@ node_modules/
 *.local.ps1
 .env
 .dev.vars
+!.dev.vars.example

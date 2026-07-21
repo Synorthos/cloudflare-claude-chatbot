@@ -79,14 +79,22 @@ How it works: the first message solves an invisible challenge; the worker verifi
 
 ## Local testing
 
-Windows: paste your keys into `run-local.ps1` (never commit them) and run it. Mac/Linux equivalent:
+Copy `.dev.vars.example` to `.dev.vars` and put your keys in there — `.dev.vars` is
+gitignored, so real keys never enter git, and `wrangler` loads it automatically.
 
 ```sh
-ANTHROPIC_API_KEY=sk-ant-... npx wrangler@latest pages dev . \
-  --kv RATE_LIMIT --port 8788 --binding ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
+cp .dev.vars.example .dev.vars   # then edit .dev.vars
+```
+
+Windows: run `powershell -ExecutionPolicy Bypass -File .\run-local.ps1`. Mac/Linux:
+
+```sh
+npx wrangler@latest pages dev . --kv RATE_LIMIT --port 8788
 ```
 
 Then open <http://127.0.0.1:8788>.
+
+> Don't put keys in `run-local.ps1` itself — that file is tracked in git.
 
 ## Test checklist before going live
 

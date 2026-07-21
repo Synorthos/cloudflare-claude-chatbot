@@ -1,0 +1,22 @@
+# Local development secrets. Copy this file to `.dev.vars` and fill it in.
+#
+#   cp .dev.vars.example .dev.vars
+#
+# `.dev.vars` is gitignored — your real keys never enter git. `wrangler pages dev`
+# loads it automatically. For the live site, keys are entered in the Cloudflare
+# dashboard as secrets (README.md, step 4), not in any file.
+
+# REQUIRED for real replies (sk-ant-api03-...)
+ANTHROPIC_API_KEY=
+
+# Optional - enables lead emails (re_...)
+RESEND_API_KEY=
+
+# Optional - defaults to CONTACT_EMAIL in _worker.js
+LEAD_TO_EMAIL=
+
+# Optional - defaults to onboarding@resend.dev
+FROM_EMAIL=
+
+# Optional - leave empty for local testing (bot check disabled if unset)
+TURNSTILE_SECRET_KEY=
